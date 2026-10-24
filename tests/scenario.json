@@ -1,0 +1,52 @@
+[
+  {
+    "collection": "properties",
+    "as": "p",
+    "data": {
+      "name": "Тестовый объект",
+      "note": "Синтетические данные"
+    }
+  },
+  {
+    "collection": "stays",
+    "as": "s1",
+    "data": {
+      "property": "$p",
+      "code": "TEST-1",
+      "start": "2099-10-24T14:00:00+05:00",
+      "end": "2099-10-25T12:00:00+05:00",
+      "status": "booked"
+    }
+  },
+  {
+    "collection": "stays",
+    "data": {
+      "property": "$p",
+      "code": "TEST-2",
+      "start": "2099-10-25T14:00:00+05:00",
+      "end": "2099-10-26T12:00:00+05:00",
+      "status": "booked"
+    }
+  },
+  {
+    "collection": "tasks",
+    "data": {
+      "stay": "$s1",
+      "task": "Тестовая уборка",
+      "assignee": "TEST",
+      "due": "2099-10-25T13:00:00+05:00",
+      "status": "open"
+    }
+  },
+  {
+    "collection": "tasks",
+    "error": "не помещается",
+    "data": {
+      "stay": "$s1",
+      "task": "Поздняя работа",
+      "assignee": "TEST",
+      "due": "2099-10-25T15:00:00+05:00",
+      "status": "open"
+    }
+  }
+]

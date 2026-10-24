@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-24",
+  "version": "0.1.0",
+  "runtime": "Node 24.19.0",
+  "tests": {
+    "slug": "turnoverline",
+    "tests": 4,
+    "pass": true,
+    "runtime": "v24.19.0"
+  },
+  "browser": {
+    "slug": "turnoverline",
+    "status": "ui_workflow_passed",
+    "saved_operations": 4,
+    "labels": {
+      "p": "Тестовый объект",
+      "s1": "TEST-1"
+    },
+    "reference": 77
+  },
+  "screens": [
+    "../.impeccable/review/desktop.jpg",
+    "../.impeccable/review/mobile.jpg",
+    "../.impeccable/review/user-1280.jpg"
+  ],
+  "limitations": "Нет Booking/Airbnb/Exely, канал-менеджера, оплаты, уборочного мобильного приложения и автоматической диспетчеризации.",
+  "deployment": "source repository; server checked locally only",
+  "security_audit": false,
+  "customer_validation": false,
+  "review": {
+    "disposition": "ship",
+    "scope": "Reviewer scored the listed fixes resolved; not a new whole-surface/security audit",
+    "record": "verdict-pass.md"
+  },
+  "correctionBrowser": {
+    "slug": "turnoverline",
+    "query": "TEST-1",
+    "result": "visible_label_and_no_results_recovery_passed"
+  }
+}

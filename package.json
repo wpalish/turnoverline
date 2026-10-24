@@ -1,0 +1,14 @@
+{
+  "name": "turnoverline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Уборка и обслуживание между заездами с проверкой окна до следующего гостя. Без OTA-интеграций.",
+  "engines": {
+    "node": ">=24.15 <25"
+  },
+  "scripts": {
+    "start": "node start.js",
+    "test": "node --test tests/*.test.js"
+  }
+}
