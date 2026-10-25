@@ -336,7 +336,7 @@ function edit(c, row) {
       const options =
         field.type === "reference"
           ? state.data[field.ref]
-              .filter((x) => !x.archived)
+              .filter((x) => !x.archived || (row && x.id === value))
               .map((x) => ({
                 value: x.id,
                 label:
@@ -345,7 +345,7 @@ function edit(c, row) {
                       .labelField ||
                       config.collections.find((c) => c.key === field.ref)
                         .fields[0].key
-                  ],
+                  ] + (x.archived ? " · Архив" : ""),
               }))
           : field.options.map((x) =>
               typeof x === "string" ? { value: x, label: x } : x,

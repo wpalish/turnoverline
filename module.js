@@ -61,6 +61,14 @@ const definition = {
   ],
   validate(state, before, command, actor) {
     unique(rows(state, "stays"), "code", "Код заезда");
+    for (const stay of rows(state, "stays")) {
+      const old = changed(before, "stays", stay.id);
+      if (!old || old.property !== stay.property)
+        required(
+          !byId(state, "properties", stay.property).archived,
+          "Новый или перенесённый заезд требует неархивного объекта.",
+        );
+    }
     noOverlap(
       rows(state, "stays"),
       "property",
@@ -70,6 +78,12 @@ const definition = {
     );
     for (const t of live(state, "tasks")) {
       const stay = byId(state, "stays", t.stay);
+      const old = changed(before, "tasks", t.id);
+      if (!old || old.stay !== t.stay)
+        required(
+          !stay.archived,
+          "Новая или перенесённая подготовка требует неархивного заезда.",
+        );
       required(
         Date.parse(t.due) >= Date.parse(stay.end),
         "Подготовка должна быть после выезда.",

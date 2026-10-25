@@ -1,0 +1,377 @@
+{
+  "date": "2026-10-25",
+  "product": "TurnoverLine",
+  "baseline": "02c38cac809a0b8272c2246c3d2d1f723fca5d8a",
+  "scope": "Archive reference boundaries and current archived option retention;not a whole-product/security audit",
+  "baseline_reproduction": {
+    "baseline": "02c38cac809a0b8272c2246c3d2d1f723fca5d8a",
+    "synthetic_memory_reproductions": [
+      {
+        "kind": "new_booked_stay",
+        "accepted": true
+      },
+      {
+        "kind": "new_cancelled_stay",
+        "accepted": true
+      },
+      {
+        "kind": "retarget_stay",
+        "accepted": true
+      },
+      {
+        "kind": "new_open_task",
+        "accepted": true
+      },
+      {
+        "kind": "new_done_task",
+        "accepted": true
+      },
+      {
+        "kind": "retarget_task",
+        "accepted": true
+      },
+      {
+        "kind": "archived_booking_overlap",
+        "accepted": false,
+        "error": "Время пересекается с другой действующей записью."
+      },
+      {
+        "kind": "task_before_checkout",
+        "accepted": false,
+        "error": "Подготовка должна быть после выезда."
+      },
+      {
+        "kind": "task_after_next_arrival",
+        "accepted": false,
+        "error": "Работа не помещается до следующего заезда."
+      },
+      {
+        "kind": "cancelled_stay_not_occupancy",
+        "accepted": true
+      }
+    ]
+  },
+  "regressions": {
+    "added": 3,
+    "failed_on_baseline": 3,
+    "tests_passed": 7,
+    "file_restart_and_empty_restore": true
+  },
+  "http": {
+    "all9_rejections_preserved_entire_state_and_audit": true,
+    "new_archival_guards": 6,
+    "existing_time_overlap_controls": 3,
+    "revision": 11,
+    "audit_events": 11,
+    "results": [
+      {
+        "kind": "new_booked",
+        "status": 400,
+        "error": "Новый или перенесённый заезд требует неархивного объекта."
+      },
+      {
+        "kind": "new_cancelled",
+        "status": 400,
+        "error": "Новый или перенесённый заезд требует неархивного объекта."
+      },
+      {
+        "kind": "retarget_stay",
+        "status": 400,
+        "error": "Новый или перенесённый заезд требует неархивного объекта."
+      },
+      {
+        "kind": "new_open_task",
+        "status": 400,
+        "error": "Новая или перенесённая подготовка требует неархивного заезда."
+      },
+      {
+        "kind": "new_done_task",
+        "status": 400,
+        "error": "Новая или перенесённая подготовка требует неархивного заезда."
+      },
+      {
+        "kind": "retarget_task",
+        "status": 400,
+        "error": "Новая или перенесённая подготовка требует неархивного заезда."
+      },
+      {
+        "kind": "archived_stay_overlap",
+        "status": 400,
+        "error": "Время пересекается с другой действующей записью."
+      },
+      {
+        "kind": "before_checkout",
+        "status": 400,
+        "error": "Подготовка должна быть после выезда."
+      },
+      {
+        "kind": "after_next_arrival",
+        "status": 400,
+        "error": "Работа не помещается до следующего заезда."
+      }
+    ]
+  },
+  "browser": {
+    "baseline_required_property_and_stay_selectors_empty": true,
+    "before": {
+      "property": {
+        "missing": true,
+        "options": [
+          "Выберите значение",
+          "SYNTHETIC live property"
+        ],
+        "value": ""
+      },
+      "stay": {
+        "missing": true,
+        "options": [
+          "Выберите значение",
+          "HISTORY-1",
+          "LIVE-STAY"
+        ],
+        "value": ""
+      }
+    },
+    "after": {
+      "property": {
+        "missing": false,
+        "options": [
+          {
+            "text": "Выберите значение",
+            "value": ""
+          },
+          {
+            "text": "SYNTHETIC archived property · Архив",
+            "value": "4c76f06f-8107-4e5c-b498-b88c4a7db876"
+          },
+          {
+            "text": "SYNTHETIC live property",
+            "value": "86d253d4-27da-4476-bea4-91f54c3c09af"
+          }
+        ],
+        "value": "4c76f06f-8107-4e5c-b498-b88c4a7db876"
+      },
+      "newProperty": [
+        {
+          "text": "Выберите значение",
+          "value": ""
+        },
+        {
+          "text": "SYNTHETIC live property",
+          "value": "86d253d4-27da-4476-bea4-91f54c3c09af"
+        }
+      ],
+      "stay": {
+        "missing": false,
+        "options": [
+          {
+            "text": "Выберите значение",
+            "value": ""
+          },
+          {
+            "text": "HISTORY-1-REVISED",
+            "value": "bd786420-bd0c-4cfd-8bea-d5a5d5468c68"
+          },
+          {
+            "text": "ARCHIVED-STAY · Архив",
+            "value": "0d59710f-1ee9-4141-80ad-bdac740aedf3"
+          },
+          {
+            "text": "LIVE-STAY",
+            "value": "5ba2ec3c-bb55-4715-852e-85f12155f4bc"
+          }
+        ],
+        "value": "0d59710f-1ee9-4141-80ad-bdac740aedf3"
+      },
+      "newStay": [
+        {
+          "text": "Выберите значение",
+          "value": ""
+        },
+        {
+          "text": "HISTORY-1-REVISED",
+          "value": "bd786420-bd0c-4cfd-8bea-d5a5d5468c68"
+        },
+        {
+          "text": "LIVE-STAY",
+          "value": "5ba2ec3c-bb55-4715-852e-85f12155f4bc"
+        }
+      ]
+    },
+    "window_rejection": {
+      "all_data_revision_audit_unchanged": true,
+      "revision": 12,
+      "audit_events": 12
+    },
+    "completed": {
+      "revision": 14,
+      "audit_events": 14,
+      "properties_unchanged": true,
+      "old_stay_reference_times_status_preserved": true,
+      "archived_stay_and_live_stay_unchanged": true,
+      "completed_task_original_stay_done_retained": true,
+      "prior_open_task_unchanged": true,
+      "new_live_task_saved": true,
+      "current_archive_options_retained": true,
+      "other_archive_options_excluded": true,
+      "state": {
+        "revision": 14,
+        "data": {
+          "properties": [
+            {
+              "name": "SYNTHETIC archived property",
+              "note": "SYNTHETIC original note",
+              "id": "4c76f06f-8107-4e5c-b498-b88c4a7db876",
+              "createdAt": "2026-10-25T05:09:02.312Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.315Z",
+              "archived": true
+            },
+            {
+              "name": "SYNTHETIC live property",
+              "note": "SYNTHETIC original note",
+              "id": "86d253d4-27da-4476-bea4-91f54c3c09af",
+              "createdAt": "2026-10-25T05:09:02.313Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.313Z",
+              "archived": false
+            },
+            {
+              "name": "SYNTHETIC other archived property",
+              "note": "",
+              "id": "442938db-d830-4675-ba00-4507dde8c7e2",
+              "createdAt": "2026-10-25T05:09:02.313Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.315Z",
+              "archived": true
+            }
+          ],
+          "stays": [
+            {
+              "property": "4c76f06f-8107-4e5c-b498-b88c4a7db876",
+              "code": "HISTORY-1-REVISED",
+              "start": "2099-12-01T10:00:00+05:00",
+              "end": "2099-12-02T10:00:00+05:00",
+              "status": "booked",
+              "id": "bd786420-bd0c-4cfd-8bea-d5a5d5468c68",
+              "createdAt": "2026-10-25T05:09:02.313Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:12:58.660Z",
+              "archived": false
+            },
+            {
+              "property": "86d253d4-27da-4476-bea4-91f54c3c09af",
+              "code": "ARCHIVED-STAY",
+              "start": "2099-12-05T10:00:00+05:00",
+              "end": "2099-12-06T10:00:00+05:00",
+              "status": "booked",
+              "id": "0d59710f-1ee9-4141-80ad-bdac740aedf3",
+              "createdAt": "2026-10-25T05:09:02.314Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.315Z",
+              "archived": true
+            },
+            {
+              "property": "86d253d4-27da-4476-bea4-91f54c3c09af",
+              "code": "LIVE-STAY",
+              "start": "2099-12-10T10:00:00+05:00",
+              "end": "2099-12-11T10:00:00+05:00",
+              "status": "booked",
+              "id": "5ba2ec3c-bb55-4715-852e-85f12155f4bc",
+              "createdAt": "2026-10-25T05:09:02.314Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.314Z",
+              "archived": false
+            }
+          ],
+          "tasks": [
+            {
+              "stay": "0d59710f-1ee9-4141-80ad-bdac740aedf3",
+              "task": "SYNTHETIC revised completed turnover",
+              "assignee": "SYNTHETIC staff",
+              "due": "2099-12-06T13:00:00+05:00",
+              "status": "done",
+              "id": "e8f14702-ea4e-4214-a87f-4f82db93e5f9",
+              "createdAt": "2026-10-25T05:09:02.314Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:13:41.259Z",
+              "archived": false
+            },
+            {
+              "stay": "5ba2ec3c-bb55-4715-852e-85f12155f4bc",
+              "task": "SYNTHETIC open turnover",
+              "assignee": "SYNTHETIC staff",
+              "due": "2099-12-11T12:00:00+05:00",
+              "status": "open",
+              "id": "43d3b11c-187f-46d9-8cec-2a555f51a5a6",
+              "createdAt": "2026-10-25T05:09:02.315Z",
+              "createdBy": "owner",
+              "updatedAt": "2026-10-25T05:09:02.315Z",
+              "archived": false
+            },
+            {
+              "stay": "5ba2ec3c-bb55-4715-852e-85f12155f4bc",
+              "task": "SYNTHETIC new live turnover",
+              "assignee": "SYNTHETIC second staff",
+              "due": "2099-12-11T13:00:00+05:00",
+              "status": "open",
+              "id": "546362ef-403a-421f-9381-5e8658b9709d",
+              "createdAt": "2026-10-25T05:13:47.528Z",
+              "createdBy": "admin",
+              "updatedAt": "2026-10-25T05:13:47.528Z",
+              "archived": false
+            }
+          ]
+        },
+        "computed": [
+          {
+            "title": "HISTORY-1-REVISED · SYNTHETIC archived property",
+            "lines": [
+              "Готовность проверяется по реальным отметкам исполнителя, без автоматического заселения."
+            ]
+          },
+          {
+            "title": "ARCHIVED-STAY · SYNTHETIC live property",
+            "lines": [
+              "SYNTHETIC revised completed turnover · SYNTHETIC staff · 2099-12-06 13:00 +05:00 · Выполнена",
+              "Готовность проверяется по реальным отметкам исполнителя, без автоматического заселения."
+            ]
+          },
+          {
+            "title": "LIVE-STAY · SYNTHETIC live property",
+            "lines": [
+              "SYNTHETIC open turnover · SYNTHETIC staff · 2099-12-11 12:00 +05:00 · Открыта",
+              "SYNTHETIC new live turnover · SYNTHETIC second staff · 2099-12-11 13:00 +05:00 · Открыта",
+              "Готовность проверяется по реальным отметкам исполнителя, без автоматического заселения."
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "runtime": {
+    "old_pid": 88044,
+    "new_pid": 93310,
+    "all_18_workspace_payloads_revisions_audit_counts_unchanged": true,
+    "record": "work/program/runtime-reloads/turnoverline-archive-20261025"
+  },
+  "rules": [
+    "New/retargeted stays require a nonarchived property,including cancelled stays.",
+    "New/retargeted preparation tasks require a nonarchived stay,including done tasks.",
+    "Existing unchanged archived references remain editable/readable/restorable;normal time checks still apply.",
+    "Archived booked stays continue to block overlaps;cancelled stays retain existing nonblocking semantics.",
+    "A task may still refer to a nonarchived stay whose property was later archived. Existing task reopening behavior unchanged."
+  ],
+  "limitations": [
+    "Archive is not cancellation or proof of guest occupancy.",
+    "Manual done is not proof of physical cleaning.",
+    "No OTA integrations,immutable full version snapshots or silent repair of old data.",
+    "Server checked locally;source published separately. No new full security audit."
+  ],
+  "screens": [
+    "selected-archive-property.jpg",
+    "selected-archive-stay.jpg",
+    "window-rejected.jpg",
+    "history-and-live-tasks.jpg"
+  ]
+}

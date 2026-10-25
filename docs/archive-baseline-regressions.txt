@@ -1,0 +1,68 @@
+✖ new/retargeted stays reject archived property;existing links and cancellation occupancy semantics remain valid (19.652583ms)
+✖ new/retargeted preparation tasks reject archived stay while existing history and time-window guards remain usable (0.84125ms)
+✖ file restart and empty restore retain archived references/history and enforce new-link guards (6.96225ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.417042
+
+✖ failing tests:
+
+test at work/products/turnoverline/tests/archive.test.js:8:1
+✖ new/retargeted stays reject archived property;existing links and cancellation occupancy semantics remain valid (19.652583ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at denied (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:6:76)
+      at TestContext.<anonymous> (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:8:224)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /архив/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at work/products/turnoverline/tests/archive.test.js:9:1
+✖ new/retargeted preparation tasks reject archived stay while existing history and time-window guards remain usable (0.84125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at denied (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:6:76)
+      at TestContext.<anonymous> (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:9:220)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /архив/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at work/products/turnoverline/tests/archive.test.js:10:1
+✖ file restart and empty restore retain archived references/history and enforce new-link guards (6.96225ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at denied (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:6:76)
+      at TestContext.<anonymous> (file:///Users/wpalish/Documents/Codex/2026-10-24/https-www-producthunt-com-https-www/work/products/turnoverline/tests/archive.test.js:10:631)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /архив/,
+    operator: 'throws',
+    diff: 'simple'
+  }

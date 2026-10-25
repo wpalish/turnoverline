@@ -4,7 +4,7 @@
   "runtime": "Node 24.19.0",
   "tests": {
     "slug": "turnoverline",
-    "tests": 4,
+    "tests": 7,
     "pass": true,
     "runtime": "v24.19.0"
   },
@@ -36,5 +36,10 @@
     "slug": "turnoverline",
     "query": "TEST-1",
     "result": "visible_label_and_no_results_recovery_passed"
+  },
+  "followup": {
+    "date": "2026-10-25",
+    "record": "archive-verification.json",
+    "scope": "Archive reference boundaries and current archived option retention;not a whole-product/security audit"
   }
 }
