@@ -245,3 +245,10 @@ The shared settings screen gives administrators data-copy download, file selecti
 - **Don't** promote preview tonal ramps or unpictured states into browser-verified implementation facts.
 
 Not canonized or repaired: the existing QUALITY BAR/seed-record evidence gaps, unpictured states and legacy PRODUCT.md schema remain explicit limits. No source, product brief, review or test was changed by this documentation pass.
+
+
+## Task guidance refinement · 26 October 2026
+
+The existing palette, system typography and native controls remain the visual authority. A collapsible numbered workflow connects the actual collections, with counts of unarchived records rather than completion claims. It starts collapsed so the current task stays in view; users can expand the complete sequence. Empty collections link to missing reference data; filtered lists offer an explicit reset including archive. Tables expose column scopes and contextual row action names. At widths up to 600px, collection navigation uses one horizontally scrollable row; the guide stacks and all actions remain keyboard accessible. New rules are in public/styles.css; behaviour is in public/workspace-guide.js.
+
+The selected collection is reflected in `#section=<key>` and restored after reload. Public `#public=` routes retain their existing entry path. Workflow supporting text uses 0.85rem for counts, 0.9rem for record totals, and 0.93rem for step descriptions; all remain secondary to the documented body and section roles.

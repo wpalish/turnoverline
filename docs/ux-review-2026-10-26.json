@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-26",
+  "base_commit": "42310296fe4ffc11dfb4a7e82a2a9cef57a74cc9",
+  "change": "workflow guide, reference-aware empty state, contextual record actions, mobile navigation and collection deep links",
+  "automated_tests": {
+    "name": "turnoverline",
+    "exit": 0,
+    "seconds": 0.65,
+    "tests": 7,
+    "pass": 7,
+    "fail": 0
+  },
+  "automated_command": "Node v24.19.0: node --test tests/*.test.js",
+  "browser": {
+    "name": "turnoverline",
+    "passed": true,
+    "checks": [
+      "guide starts collapsed",
+      "workflow navigation",
+      "missing reference navigation",
+      "synthetic form save",
+      "saved record reaches server",
+      "reload retains record and count",
+      "search reset restores list",
+      "column header semantics",
+      "navigation and filtering never write data",
+      "mobile populated list",
+      "no JavaScript errors"
+    ]
+  },
+  "capture_widths": [
+    390,
+    768,
+    1440
+  ],
+  "synthetic_data_only": true,
+  "scope_limits": [
+    "No live customer or market validation",
+    "No full accessibility conformance assessment",
+    "Repository domain logic unchanged; checks cover this UX increment"
+  ],
+  "files_sha256": {
+    "public/app.js": "163acd626eca97f395fb6f886b3f625b82e8292fd654d0ed8d7f1fe2b7c5a056",
+    "public/styles.css": "996d66136f461d589290afa3eca5b5cad2aa0539e529d23febf69086b0ee20af",
+    "public/workspace-guide.js": "adaaf6536f56d337ea17ed308af7ac04862daa2e4ee71aa2f31a8b8e1bef1778",
+    "core/server.js": "fefbb05ed9a109e50c494b40ba1fd83f9fe0a34ec298753ce539c3e6cab50923"
+  }
+}

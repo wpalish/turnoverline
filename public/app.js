@@ -1,3 +1,5 @@
+import {workspaceGuide,recordSummary,emptyRecords,labelTable} from './workspace-guide.js';
+const journey={"title": "От объекта к подготовке заезда", "description": "Сначала заведите объект и интервалы проживания, затем назначайте подготовку в допустимое окно.", "steps": [{"key": "properties", "description": "Добавьте объект, для которого учитываются заезды и подготовка."}, {"key": "stays", "description": "Укажите начало и конец проживания, проверьте состояние заезда."}, {"key": "tasks", "description": "Назначьте подготовку после выезда и до следующего гостя. Выполнение отмечается вручную."}]};
 const screen = document.getElementById("screen"),
   notice = document.getElementById("notice"),
   navigation = document.getElementById("navigation");
@@ -235,6 +237,9 @@ function displayValue(field, row) {
   return value;
 }
 function renderRows() {
+  const navigate = key => { active=key; query=''; showArchived=false; render(); const heading=screen.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus();} };
+  workspaceGuide(screen,{config,state,active,journey,navigate});
+
   const c = config.collections.find((x) => x.key === active),
     host = document.getElementById("records");
   host.replaceChildren();
@@ -249,14 +254,9 @@ function renderRows() {
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
+  recordSummary(host,values.length,state.data[active].length);
   if (!values.length) {
-    host.append(
-      E(
-        "p",
-        "Записей по этому условию нет. Создайте первую запись или измените поиск.",
-        "muted",
-      ),
-    );
+    emptyRecords(host,{config,state,active,query,journey,navigate,create:()=>edit(c),clear:()=>{query='';showArchived=true;render();},canCreate:!c.createDisabled&&(!c.writeRole||user.role==='admin')});
     return;
   }
   const wrap = E("div", undefined, "table-wrap"),
@@ -312,6 +312,7 @@ function renderRows() {
     ),
     wrap,
   );
+  labelTable(host);
 }
 function edit(c, row) {
   screen.replaceChildren(
@@ -641,6 +642,8 @@ async function publicView(id) {
 }
 run(async () => {
   config = await api("/api/config");
+const requestedSection=new URLSearchParams(location.hash.slice(1)).get('section');if(config.collections.some(collection=>collection.key===requestedSection))active=requestedSection;
+for(const [key,label] of Object.entries({"properties": "Добавить объект", "stays": "Добавить заезд", "tasks": "Назначить подготовку"})){const collection=config.collections.find(item=>item.key===key);if(collection&&!collection.addLabel)collection.addLabel=label;}
   const id = location.hash.startsWith("#public=") ? location.hash.slice(8) : "";
   if (id) {
     await publicView(id);

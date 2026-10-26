@@ -270,7 +270,7 @@ export function createServer(
             .map((x) => ({ ...x, command: JSON.parse(x.command) })),
         });
       }
-      if (method === "GET" && ["/", "/app.js", "/styles.css"].includes(path)) {
+      if (method === "GET" && ["/", "/app.js", "/styles.css", "/workspace-guide.js"].includes(path)) {
         const filename = path === "/" ? "index.html" : path.slice(1),
           data = await readFile(
             fileURLToPath(new URL("../public/" + filename, import.meta.url)),
