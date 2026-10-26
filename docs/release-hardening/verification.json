@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-26",
+  "product": "turnoverline",
+  "state": "local_candidate_tested_not_merged_or_deployed",
+  "syntheticOnly": true,
+  "runtime": "Node24.19.0",
+  "tests": {
+    "tests": 35,
+    "pass": 35,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "exit": 0,
+    "diffCheck": 0
+  },
+  "syntaxFiles": 21,
+  "testLog": "test-output.txt",
+  "previousDesignEvidence": "../pre-release/",
+  "schemaVersionUnchanged": true,
+  "thirdPartyRuntimeDependenciesAdded": 0,
+  "browser": {
+    "name": "turnoverline",
+    "uiRevoke": 2,
+    "probeDisabled": true,
+    "desktop": {
+      "minButtonHeight": 44,
+      "scrollWidth": 1440,
+      "width": 1440
+    },
+    "mobile": {
+      "minButtonHeight": 44,
+      "scrollWidth": 390,
+      "width": 390
+    }
+  },
+  "revokedHttp": {
+    "name": "turnoverline",
+    "revokedSessionsDenied": [
+      401,
+      401
+    ],
+    "health": 200
+  },
+  "backupRestore": {
+    "status": "passed",
+    "source": "work/qa-data/turnoverline/workspace.sqlite",
+    "snapshot": "work/release-hardening/drill/turnoverline/snapshot.sqlite",
+    "restored": "work/release-hardening/drill/turnoverline/restored.sqlite",
+    "backup": {
+      "status": 0,
+      "bytes": 53248,
+      "revision": 14,
+      "ownerOnly": true
+    },
+    "restore": {
+      "status": 0,
+      "bytes": 53248,
+      "revision": 14,
+      "ownerOnly": true
+    },
+    "tables": {
+      "workspace": {
+        "sourceBeforeCount": 1,
+        "sourceAfterCount": 1,
+        "snapshotCount": 1,
+        "restoredBeforeLoginCount": 1,
+        "sourceAfterExactSnapshot": true,
+        "snapshotExactRestored": true,
+        "sourceChangedDuringBackup": false
+      },
+      "audit": {
+        "sourceBeforeCount": 14,
+        "sourceAfterCount": 14,
+        "snapshotCount": 14,
+        "restoredBeforeLoginCount": 14,
+        "sourceAfterExactSnapshot": true,
+        "snapshotExactRestored": true,
+        "sourceChangedDuringBackup": false
+      },
+      "users": {
+        "sourceBeforeCount": 2,
+        "sourceAfterCount": 2,
+        "snapshotCount": 2,
+        "restoredBeforeLoginCount": 2,
+        "sourceAfterExactSnapshot": true,
+        "snapshotExactRestored": true,
+        "sourceChangedDuringBackup": false
+      },
+      "sessions": {
+        "sourceBeforeCount": 5,
+        "sourceAfterCount": 5,
+        "snapshotCount": 5,
+        "restoredBeforeLoginCount": 5,
+        "sourceAfterExactSnapshot": true,
+        "snapshotExactRestored": true,
+        "sourceChangedDuringBackup": false
+      },
+      "failures": {
+        "sourceBeforeCount": 0,
+        "sourceAfterCount": 0,
+        "snapshotCount": 0,
+        "restoredBeforeLoginCount": 0,
+        "sourceAfterExactSnapshot": true,
+        "snapshotExactRestored": true,
+        "sourceChangedDuringBackup": false
+      }
+    },
+    "domain": {
+      "revision": 14,
+      "collections": {
+        "properties": 3,
+        "stays": 5,
+        "tasks": 4
+      },
+      "sourceExactSnapshot": true,
+      "snapshotExactRestored": true
+    },
+    "lifecycle": {
+      "bind": "127.0.0.1",
+      "ports": "OS-assigned ephemeral ports, both stopped",
+      "healthBeforeRestart": true,
+      "previousSyntheticAdminLogin": true,
+      "authenticatedStateExact": true,
+      "healthAfterRestart": true,
+      "cookiePersistsAcrossRestart": true,
+      "restartedStateExact": true,
+      "domainAccountsAuditUnchanged": true,
+      "restoredSessionAndFailureTablesMayChangeDuringLogin": true
+    },
+    "finalSourceDomainStillExact": true,
+    "sourceOriginalOpenedForWrite": false
+  },
+  "regressions": [
+    "unexpected exceptions return generic500; invalid calendar dates remain intentional400",
+    "server-confirmed create/revoke stays confirmed when follow-up GET fails; stale controls removed",
+    "production owner/private directory and SQLite main/WAL/SHM/journal validation",
+    "absolute2s health deadline defeats continuously trickling responder"
+  ]
+}

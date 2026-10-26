@@ -3,8 +3,10 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
-export const problem = (message, status = 400) =>
-  Object.assign(new Error(message), { status });
+export class WorkProblem extends Error {
+  constructor(message, status = 400) { super(message); this.status = status; }
+}
+export const problem = (message, status = 400) => new WorkProblem(message, status);
 export function required(ok, message) {
   if (!ok) throw problem(message);
 }
@@ -96,6 +98,7 @@ function fieldValue(field, input, state) {
   if (field.type === "date")
     required(
       /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+        Number.isFinite(Date.parse(value)) &&
         new Date(value).toISOString().slice(0, 10) === value,
       `${field.label}: неверная дата.`,
     );

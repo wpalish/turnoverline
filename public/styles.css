@@ -241,3 +241,17 @@ main { padding-top: 1.5rem; }
   .handoff-heading, .handoff-window, .handoff-task, .property-row { padding: 1rem 1.25rem; }
   .property-instruction { padding-inline: 1.25rem; }
 }
+
+/* Data/access: factual account metadata and explicit session revocation. */
+.account-sessions { margin-block: 1.25rem; }
+.account-session-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.account-session-heading h2 { margin: 0; }
+.account-session-heading button, .account-session-row button { min-height: 44px; }
+.account-session-status { font-variant-numeric: tabular-nums; font-size: .8rem; }
+.account-session-list { display: grid; }
+.account-session-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 1rem; align-items: center; padding: 1rem 0; border-top: 1px solid var(--separator, var(--line, #b9cbd9)); }
+.account-session-row > div { min-width: 0; }
+.account-session-row h3 { margin: 0 0 .35rem; font-size: 1rem; overflow-wrap: anywhere; }
+.account-session-row p { margin: .25rem 0; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.account-session-row small { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+@media(max-width: 600px) { .account-session-row { grid-template-columns: minmax(0,1fr); } .account-session-row button { width: 100%; } .account-session-heading { align-items: flex-start; } }

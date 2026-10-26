@@ -520,6 +520,69 @@ function edit(c, row) {
     screen.append(details);
   }
 }
+function accountSessions(report) {
+  const panel = E('section', undefined, 'panel account-sessions'),
+    header = E('div', undefined, 'account-session-heading'),
+    refreshButton = E('button', 'Обновить сеансы', 'secondary'),
+    status = E('p', 'Загрузка аккаунтов и сеансов…', 'muted account-session-status'),
+    list = E('div', undefined, 'account-session-list');
+  refreshButton.type = 'button';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  header.append(E('h2', 'Аккаунты и сеансы'), refreshButton);
+  panel.append(header, E('p', 'Отзыв завершает вход в браузерах выбранного аккаунта. Для вашего аккаунта текущий сеанс всегда сохраняется. Пароли и роли здесь не меняются.', 'muted'), status, list);
+  screen.append(panel);
+  let requestNumber = 0;
+  const stamp = value => new Date(value).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  async function refresh() {
+    const current = ++requestNumber;
+    status.textContent = 'Обновление сведений о сеансах…';
+    try {
+      const result = await api('/api/accounts');
+      if (current !== requestNumber || !panel.isConnected) return;
+      list.replaceChildren();
+      for (const account of result.users) {
+        const row = E('article', undefined, 'account-session-row'),
+          detail = E('div'),
+          label = account.isCurrentUser ? 'Завершить другие сеансы' : 'Завершить все сеансы',
+          revoke = E('button', label, 'secondary');
+        detail.append(E('h3', account.name + (account.isCurrentUser ? ' · ваш аккаунт' : '')), E('p', (account.role === 'admin' ? 'Администратор' : 'Сотрудник') + ' · действующих сеансов: ' + account.activeSessions));
+        const expiry = !account.activeSessions ? 'Действующих сеансов нет.' : account.earliestExpiry === account.latestExpiry ? 'Истечение: ' + stamp(account.latestExpiry) : 'Истечение сеансов: от ' + stamp(account.earliestExpiry) + ' до ' + stamp(account.latestExpiry);
+        detail.append(E('small', expiry));
+        revoke.type = 'button';
+        revoke.setAttribute('aria-label', label + ': ' + account.name);
+        revoke.disabled = account.activeSessions <= (account.isCurrentUser ? 1 : 0);
+        revoke.addEventListener('click', () => run(async () => {
+          revoke.textContent = 'Завершение…';
+          try {
+            const result = await api('/api/accounts/revoke-sessions', 'POST', {username: account.name});
+            await confirmMutation('Завершено действующих сеансов: ' + result.revoked + ' · ' + result.username + (result.keptCurrent ? '. Ваш текущий сеанс сохранён.' : '.'));
+          } finally { revoke.textContent = label; }
+        }, revoke));
+        row.append(detail, revoke);
+        list.append(row);
+      }
+      status.textContent = 'Обновлено: ' + stamp(result.serverTime) + '. Ваш текущий сеанс истекает: ' + stamp(result.currentSessionExpires) + '.';
+    } catch (error) {
+      if (current === requestNumber && panel.isConnected) status.textContent = 'Не удалось загрузить сведения. Повторите кнопкой «Обновить сеансы».';
+      throw error;
+    }
+  }
+  async function confirmMutation(confirmation) {
+    // The write is committed; a read failure must not turn it into a failed write.
+    list.replaceChildren();
+    report(confirmation);
+    try { await refresh(); }
+    catch {
+      report(confirmation + ' Список аккаунтов и сеансов не обновлён. Нажмите «Обновить сеансы» или войдите снова.', true);
+    }
+  }
+  accountSessions.refresh = refresh;
+  accountSessions.afterMutation = confirmMutation;
+  refreshButton.addEventListener('click', () => run(refresh, refreshButton));
+  run(refresh, refreshButton);
+}
+
 function settings() {
   screen.replaceChildren(E("h1", "Данные и доступ"));
   const actions = E("div", undefined, "actions");
@@ -531,6 +594,7 @@ function settings() {
     );
     return;
   }
+  accountSessions(message);
   screen.append(
     button("Скачать копию данных", async () =>
       download(config.slug + "-backup.json", await api("/api/backup")),
@@ -594,7 +658,7 @@ function settings() {
         role: "operator",
       });
       form.reset();
-      message("Сотрудник создан. Передайте пароль защищённым способом.");
+      await accountSessions.afterMutation("Сотрудник создан. Передайте пароль защищённым способом.");
     }, submit);
   });
   screen.append(

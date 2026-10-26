@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import {
   randomBytes,
+  randomUUID,
   createHash,
   scryptSync,
   timingSafeEqual,
 } from "node:crypto";
-import { WorkStore, required, problem } from "./store.js";
+import { WorkStore, WorkProblem, required, problem } from "./store.js";
 
 const digest = (text) => createHash("sha256").update(text).digest("hex"),
   random = () => randomBytes(32).toString("hex");
@@ -75,11 +76,9 @@ export function createServer(
       "Имя: 3–80 латинских знаков.",
     );
     required(["admin", "operator"].includes(input.role), "Выберите роль.");
-    db.prepare("INSERT INTO users VALUES(?,?,?)").run(
-      input.username,
-      encode(input.password),
-      input.role,
-    );
+    const password = encode(input.password);
+    required(!db.prepare("SELECT name FROM users WHERE name=?").get(input.username), "Такое имя уже существует.");
+    db.prepare("INSERT INTO users VALUES(?,?,?)").run(input.username, password, input.role);
     return { username: input.username, role: input.role };
   }
   if (admin && !db.prepare("SELECT name FROM users LIMIT 1").get())
@@ -143,6 +142,13 @@ export function createServer(
       if (limits.size > 5000)
         for (const [k, v] of limits)
           if (now() - v.since > 60000) limits.delete(k);
+      if (method === "GET" && path === "/healthz") {
+        let ready = false;
+        try {
+          ready = !!db.prepare("SELECT revision FROM workspace WHERE id=1").get() && !!db.prepare("SELECT name FROM users WHERE role='admin' LIMIT 1").get();
+        } catch { /* The health contract never exposes database errors. */ }
+        return send(res, ready ? 200 : 503, {status: ready ? "ok" : "unavailable", product: definition.slug});
+      }
       if (method === "GET" && path === "/api/config")
         return send(res, 200, {
           slug: definition.slug,
@@ -239,6 +245,31 @@ export function createServer(
           },
         );
       }
+      if (method === "GET" && path === "/api/accounts") {
+        const actor = auth(req, "admin"), at = now();
+        const users = db.prepare(
+          "SELECT u.name,u.role,COUNT(s.digest) activeSessions,MIN(s.expires) earliestExpiry,MAX(s.expires) latestExpiry FROM users u LEFT JOIN sessions s ON s.username=u.name AND s.expires>? GROUP BY u.name,u.role ORDER BY u.name",
+        ).all(at).map(account => ({...account, isCurrentUser: account.name === actor.name}));
+        const current = db.prepare("SELECT expires FROM sessions WHERE digest=?").get(digest(cookie(req, cookieName)));
+        return send(res, 200, {serverTime: at, currentSessionExpires: current.expires, users});
+      }
+      if (method === "POST" && path === "/api/accounts/revoke-sessions") {
+        const actor = auth(req, "admin"), input = await body(req);
+        required(Object.keys(input).length === 1 && typeof input.username === "string" && /^[a-zA-Z0-9_.-]{3,80}$/.test(input.username), "Укажите имя аккаунта.");
+        if (!db.prepare("SELECT name FROM users WHERE name=?").get(input.username)) throw problem("Аккаунт не найден.", 404);
+        const keptCurrent = input.username === actor.name,
+          preserved = keptCurrent ? digest(cookie(req, cookieName)) : "",
+          at = now();
+        db.exec("BEGIN IMMEDIATE");
+        let revoked;
+        try {
+          revoked = db.prepare("SELECT COUNT(*) count FROM sessions WHERE username=? AND expires>? AND digest<>?").get(input.username, at, preserved).count;
+          db.prepare("DELETE FROM sessions WHERE username=? AND digest<>?").run(input.username, preserved);
+          db.prepare("INSERT INTO audit VALUES(?,?,?,?)").run(randomUUID(), new Date(at).toISOString(), actor.name, JSON.stringify({operation: "revoke_sessions", username: input.username, revoked, keptCurrent}));
+          db.exec("COMMIT");
+        } catch (error) { db.exec("ROLLBACK"); throw error; }
+        return send(res, 200, {username: input.username, revoked, keptCurrent});
+      }
       if (method === "POST" && path === "/api/users") {
         auth(req, "admin");
         return send(res, 201, userCreate(await body(req)));
@@ -287,10 +318,9 @@ export function createServer(
       }
       throw problem("Адрес не найден.", 404);
     } catch (e) {
-      send(res, e.status || 400, {
-        error: e.message?.includes("UNIQUE constraint")
-          ? "Такое имя уже существует."
-          : e.message,
+      const known = e instanceof WorkProblem && Number.isInteger(e.status) && e.status >= 400 && e.status <= 599;
+      send(res, known ? e.status : 500, {
+        error: known && e.status < 500 ? e.message : "Внутренняя ошибка сервера. Повторите позже.",
       });
     }
   });
