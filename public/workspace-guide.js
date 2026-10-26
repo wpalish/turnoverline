@@ -31,7 +31,7 @@ export function workspaceGuide(screen, { config, state, active, journey, navigat
   if (current && matchMedia('(max-width: 600px)').matches)
     navigation.scrollLeft = current.offsetLeft - navigation.offsetLeft - (navigation.clientWidth - current.clientWidth) / 2;
   if (previous) previous.replaceWith(guide);
-  else screen.insertBefore(guide, screen.children[2] || null);
+  else screen.querySelector('#records').after(guide);
 }
 
 export function recordSummary(host, shown, total) {
@@ -41,7 +41,9 @@ export function recordSummary(host, shown, total) {
     counter.id = 'record-count';
     counter.setAttribute('role', 'status');
     counter.setAttribute('aria-live', 'polite');
-    host.before(counter);
+    const toolbar = host.parentElement.querySelector('.collection-toolbar');
+    if (toolbar) toolbar.append(counter);
+    else host.before(counter);
   }
   counter.textContent = `Показано: ${shown} из ${total}`;
 }

@@ -1,3 +1,4 @@
+import { productMeta, productView, editorContext } from './product-view.js';
 import {workspaceGuide,recordSummary,emptyRecords,labelTable} from './workspace-guide.js';
 const journey={"title": "От объекта к подготовке заезда", "description": "Сначала заведите объект и интервалы проживания, затем назначайте подготовку в допустимое окно.", "steps": [{"key": "properties", "description": "Добавьте объект, для которого учитываются заезды и подготовка."}, {"key": "stays", "description": "Укажите начало и конец проживания, проверьте состояние заезда."}, {"key": "tasks", "description": "Назначьте подготовку после выезда и до следующего гостя. Выполнение отмечается вручную."}]};
 const screen = document.getElementById("screen"),
@@ -23,13 +24,17 @@ function message(text, error = false) {
 }
 async function run(fn, button) {
   message("");
-  if (button) button.disabled = true;
+  const originalLabel = button?.textContent;
+  if (button) { button.textContent = originalLabel === "Войти" ? "Вход…" : button.type === "submit" ? "Сохранение…" : "Подождите…"; button.disabled = true; button.setAttribute("aria-busy", "true"); }
   try {
     await fn();
   } catch (e) {
+    if (screen.querySelector('[data-loading]')) {
+      screen.replaceChildren(E("h1", "Рабочее пространство не загрузилось"), E("p", "Проверьте подключение к серверу и повторите загрузку."), button("Повторить загрузку", () => location.reload(), "primary"));
+    }
     message(e.message, true);
   } finally {
-    if (button) button.disabled = false;
+    if (button) { button.textContent = originalLabel; button.disabled = false; button.removeAttribute("aria-busy"); }
   }
 }
 function button(label, fn, cls = "secondary") {
@@ -93,10 +98,16 @@ function chrome() {
   document.getElementById("footer").textContent = config.limitations;
   navigation.replaceChildren();
   if (!user) return;
-  for (const collection of config.collections) {
-    const b = button(collection.title, () => {
+  for (const key of productMeta.navigation) {
+    const collection = config.collections.find(item => item.key === key);
+    const b = button(productMeta.labels?.[key] || collection.title, () => {
       active = collection.key;
+      query = "";
+      showArchived = false;
       render();
+      const heading = screen.querySelector("h1");
+      heading.tabIndex = -1;
+      heading.focus();
     });
     if (active === collection.key) b.setAttribute("aria-current", "page");
     navigation.append(b);
@@ -145,30 +156,36 @@ function login() {
 }
 async function load() {
   state = await api("/api/state");
-  active = active || config.collections[0].key;
+  active = active || productMeta.defaultSection;
   render();
 }
 function render() {
   chrome();
   const c = config.collections.find((x) => x.key === active);
-  screen.replaceChildren(
-    E("h1", c.title),
-    E("p", c.description || config.description),
+  const heading = E("div", undefined, "collection-heading"),
+    title = E("div", undefined, "collection-title");
+  title.append(
+    E("h1", productMeta.headings[active]?.[0] || c.title),
+    E("p", productMeta.headings[active]?.[1] || c.description || config.description, "page-description"),
   );
-  const controls = E("div", undefined, "actions");
+  heading.append(title);
+  screen.replaceChildren(heading);
+  const controls = E("div", undefined, "actions collection-actions");
   if (!c.createDisabled && (c.writeRole !== "admin" || user.role === "admin"))
     controls.append(
       button(c.addLabel || "Добавить запись", () => edit(c), "primary"),
     );
   controls.append(button("Обновить", load));
-  screen.append(controls);
+  heading.append(controls);
+  const toolbar = E("div", undefined, "collection-toolbar");
   const search = E("div", undefined, "search-tools");
   const q = input(search, "search", "Поиск по записям", query, "search", false);
+  q.placeholder = "Название, код или связанная запись";
   q.addEventListener("input", () => {
     query = q.value;
     renderRows();
   });
-  const archivedLabel = E("label", "Показать архив"),
+  const archivedLabel = E("label", "Показать архив", "archive-toggle"),
     toggle = E("input");
   toggle.type = "checkbox";
   toggle.checked = showArchived;
@@ -178,14 +195,14 @@ function render() {
     renderRows();
   });
   archivedLabel.prepend(toggle);
-  search.append(archivedLabel);
-  screen.append(search);
+  toolbar.append(search, archivedLabel);
+  screen.append(toolbar);
   const holder = E("section");
   holder.id = "records";
   screen.append(holder);
   renderRows();
-  const summary = E("section");
-  summary.append(E("h2", "Расчёт и контроль"));
+  const summary = E("details", undefined, "computed-panel");
+  summary.append(E("summary", "Сводка сохранённых данных"));
   for (const block of state.computed || []) {
     const entry = E("div", undefined, "entry");
     entry.append(E("h3", block.title));
@@ -243,6 +260,8 @@ function renderRows() {
   const c = config.collections.find((x) => x.key === active),
     host = document.getElementById("records");
   host.replaceChildren();
+  screen.querySelector(".agenda-filters")?.remove();
+  screen.querySelector(".collection-toolbar")?.classList.remove("has-product-filters");
   const values = state.data[c.key].filter(
     (x) =>
       (showArchived || !x.archived) &&
@@ -259,6 +278,8 @@ function renderRows() {
     emptyRecords(host,{config,state,active,query,journey,navigate,create:()=>edit(c),clear:()=>{query='';showArchived=true;render();},canCreate:!c.createDisabled&&(!c.writeRole||user.role==='admin')});
     return;
   }
+  if (productView({ host, key: c.key, rows: values, data: state.data,
+    open: (key, row) => edit(config.collections.find(item => item.key === key), row) })) return;
   const wrap = E("div", undefined, "table-wrap"),
     table = E("table"),
     head = E("thead"),
@@ -315,6 +336,7 @@ function renderRows() {
   labelTable(host);
 }
 function edit(c, row) {
+  const editingRevision = state.revision;
   screen.replaceChildren(
     E("h1", row ? "Изменить: " + c.title : c.addLabel || "Новая запись"),
     E(
@@ -323,7 +345,10 @@ function edit(c, row) {
         "Заполните обязательные поля. Сервер проверит связанные записи и ограничения до сохранения.",
     ),
   );
-  const form = E("form", undefined, "panel");
+  const context = editorContext({ collection: c, row, data: state.data,
+    open: (key, record) => edit(config.collections.find(item => item.key === key), record) });
+  if (context) screen.append(context);
+  const form = E("form", undefined, "panel record-form");
   for (const field of c.fields) {
     let value = row?.[field.key] ?? field.default ?? "";
     if (["select", "reference"].includes(field.type)) {
@@ -441,7 +466,7 @@ function edit(c, row) {
           operation: "archive",
           collection: c.key,
           id: row.id,
-          revision: state.revision,
+          revision: editingRevision,
         });
         render();
       }),
@@ -463,7 +488,7 @@ function edit(c, row) {
         operation: "save",
         collection: c.key,
         id: row?.id,
-        revision: state.revision,
+        revision: editingRevision,
         data,
       });
       render();
@@ -471,6 +496,9 @@ function edit(c, row) {
     }, submit);
   });
   screen.append(form);
+  const heading = screen.querySelector("h1");
+  heading.tabIndex = -1;
+  heading.focus();
   if (row && config.collections.find((x) => x.key === active).publicLinks) {
     const link = E("a", "Открыть публичную форму");
     link.href = location.origin + "/#public=" + row.id;
@@ -640,6 +668,10 @@ async function publicView(id) {
     ),
   );
 }
+const loadingState = E("p", "Загрузка рабочего пространства…", "muted");
+loadingState.dataset.loading = "true";
+loadingState.setAttribute("role", "status");
+screen.replaceChildren(loadingState);
 run(async () => {
   config = await api("/api/config");
 const requestedSection=new URLSearchParams(location.hash.slice(1)).get('section');if(config.collections.some(collection=>collection.key===requestedSection))active=requestedSection;
