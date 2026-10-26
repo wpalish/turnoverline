@@ -1,0 +1,29 @@
+[Unit]
+Description=TurnoverLine workspace
+After=network.target
+
+[Service]
+Type=simple
+User=turnoverline
+Group=turnoverline
+WorkingDirectory=/opt/turnoverline
+EnvironmentFile=/etc/turnoverline.env
+ExecStartPre=/usr/local/bin/node scripts/preflight.mjs
+ExecStart=/usr/local/bin/node start.js
+Restart=on-failure
+RestartPreventExitStatus=78
+RestartSec=3
+TimeoutStopSec=10
+UMask=0077
+StateDirectory=turnoverline
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

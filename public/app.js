@@ -1,3 +1,6 @@
+import { productMeta, productView, editorContext } from './product-view.js';
+import {workspaceGuide,recordSummary,emptyRecords,labelTable} from './workspace-guide.js';
+const journey={"title": "От объекта к подготовке заезда", "description": "Сначала заведите объект и интервалы проживания, затем назначайте подготовку в допустимое окно.", "steps": [{"key": "properties", "description": "Добавьте объект, для которого учитываются заезды и подготовка."}, {"key": "stays", "description": "Укажите начало и конец проживания, проверьте состояние заезда."}, {"key": "tasks", "description": "Назначьте подготовку после выезда и до следующего гостя. Выполнение отмечается вручную."}]};
 const screen = document.getElementById("screen"),
   notice = document.getElementById("notice"),
   navigation = document.getElementById("navigation");
@@ -21,13 +24,17 @@ function message(text, error = false) {
 }
 async function run(fn, button) {
   message("");
-  if (button) button.disabled = true;
+  const originalLabel = button?.textContent;
+  if (button) { button.textContent = originalLabel === "Войти" ? "Вход…" : button.type === "submit" ? "Сохранение…" : "Подождите…"; button.disabled = true; button.setAttribute("aria-busy", "true"); }
   try {
     await fn();
   } catch (e) {
+    if (screen.querySelector('[data-loading]')) {
+      screen.replaceChildren(E("h1", "Рабочее пространство не загрузилось"), E("p", "Проверьте подключение к серверу и повторите загрузку."), button("Повторить загрузку", () => location.reload(), "primary"));
+    }
     message(e.message, true);
   } finally {
-    if (button) button.disabled = false;
+    if (button) { button.textContent = originalLabel; button.disabled = false; button.removeAttribute("aria-busy"); }
   }
 }
 function button(label, fn, cls = "secondary") {
@@ -91,10 +98,16 @@ function chrome() {
   document.getElementById("footer").textContent = config.limitations;
   navigation.replaceChildren();
   if (!user) return;
-  for (const collection of config.collections) {
-    const b = button(collection.title, () => {
+  for (const key of productMeta.navigation) {
+    const collection = config.collections.find(item => item.key === key);
+    const b = button(productMeta.labels?.[key] || collection.title, () => {
       active = collection.key;
+      query = "";
+      showArchived = false;
       render();
+      const heading = screen.querySelector("h1");
+      heading.tabIndex = -1;
+      heading.focus();
     });
     if (active === collection.key) b.setAttribute("aria-current", "page");
     navigation.append(b);
@@ -143,30 +156,36 @@ function login() {
 }
 async function load() {
   state = await api("/api/state");
-  active = active || config.collections[0].key;
+  active = active || productMeta.defaultSection;
   render();
 }
 function render() {
   chrome();
   const c = config.collections.find((x) => x.key === active);
-  screen.replaceChildren(
-    E("h1", c.title),
-    E("p", c.description || config.description),
+  const heading = E("div", undefined, "collection-heading"),
+    title = E("div", undefined, "collection-title");
+  title.append(
+    E("h1", productMeta.headings[active]?.[0] || c.title),
+    E("p", productMeta.headings[active]?.[1] || c.description || config.description, "page-description"),
   );
-  const controls = E("div", undefined, "actions");
+  heading.append(title);
+  screen.replaceChildren(heading);
+  const controls = E("div", undefined, "actions collection-actions");
   if (!c.createDisabled && (c.writeRole !== "admin" || user.role === "admin"))
     controls.append(
       button(c.addLabel || "Добавить запись", () => edit(c), "primary"),
     );
   controls.append(button("Обновить", load));
-  screen.append(controls);
+  heading.append(controls);
+  const toolbar = E("div", undefined, "collection-toolbar");
   const search = E("div", undefined, "search-tools");
   const q = input(search, "search", "Поиск по записям", query, "search", false);
+  q.placeholder = "Название, код или связанная запись";
   q.addEventListener("input", () => {
     query = q.value;
     renderRows();
   });
-  const archivedLabel = E("label", "Показать архив"),
+  const archivedLabel = E("label", "Показать архив", "archive-toggle"),
     toggle = E("input");
   toggle.type = "checkbox";
   toggle.checked = showArchived;
@@ -176,14 +195,14 @@ function render() {
     renderRows();
   });
   archivedLabel.prepend(toggle);
-  search.append(archivedLabel);
-  screen.append(search);
+  toolbar.append(search, archivedLabel);
+  screen.append(toolbar);
   const holder = E("section");
   holder.id = "records";
   screen.append(holder);
   renderRows();
-  const summary = E("section");
-  summary.append(E("h2", "Расчёт и контроль"));
+  const summary = E("details", undefined, "computed-panel");
+  summary.append(E("summary", "Сводка сохранённых данных"));
   for (const block of state.computed || []) {
     const entry = E("div", undefined, "entry");
     entry.append(E("h3", block.title));
@@ -235,9 +254,14 @@ function displayValue(field, row) {
   return value;
 }
 function renderRows() {
+  const navigate = key => { active=key; query=''; showArchived=false; render(); const heading=screen.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus();} };
+  workspaceGuide(screen,{config,state,active,journey,navigate});
+
   const c = config.collections.find((x) => x.key === active),
     host = document.getElementById("records");
   host.replaceChildren();
+  screen.querySelector(".agenda-filters")?.remove();
+  screen.querySelector(".collection-toolbar")?.classList.remove("has-product-filters");
   const values = state.data[c.key].filter(
     (x) =>
       (showArchived || !x.archived) &&
@@ -249,16 +273,13 @@ function renderRows() {
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
+  recordSummary(host,values.length,state.data[active].length);
   if (!values.length) {
-    host.append(
-      E(
-        "p",
-        "Записей по этому условию нет. Создайте первую запись или измените поиск.",
-        "muted",
-      ),
-    );
+    emptyRecords(host,{config,state,active,query,journey,navigate,create:()=>edit(c),clear:()=>{query='';showArchived=true;render();},canCreate:!c.createDisabled&&(!c.writeRole||user.role==='admin')});
     return;
   }
+  if (productView({ host, key: c.key, rows: values, data: state.data,
+    open: (key, row) => edit(config.collections.find(item => item.key === key), row) })) return;
   const wrap = E("div", undefined, "table-wrap"),
     table = E("table"),
     head = E("thead"),
@@ -312,8 +333,10 @@ function renderRows() {
     ),
     wrap,
   );
+  labelTable(host);
 }
 function edit(c, row) {
+  const editingRevision = state.revision;
   screen.replaceChildren(
     E("h1", row ? "Изменить: " + c.title : c.addLabel || "Новая запись"),
     E(
@@ -322,7 +345,10 @@ function edit(c, row) {
         "Заполните обязательные поля. Сервер проверит связанные записи и ограничения до сохранения.",
     ),
   );
-  const form = E("form", undefined, "panel");
+  const context = editorContext({ collection: c, row, data: state.data,
+    open: (key, record) => edit(config.collections.find(item => item.key === key), record) });
+  if (context) screen.append(context);
+  const form = E("form", undefined, "panel record-form");
   for (const field of c.fields) {
     let value = row?.[field.key] ?? field.default ?? "";
     if (["select", "reference"].includes(field.type)) {
@@ -440,7 +466,7 @@ function edit(c, row) {
           operation: "archive",
           collection: c.key,
           id: row.id,
-          revision: state.revision,
+          revision: editingRevision,
         });
         render();
       }),
@@ -462,7 +488,7 @@ function edit(c, row) {
         operation: "save",
         collection: c.key,
         id: row?.id,
-        revision: state.revision,
+        revision: editingRevision,
         data,
       });
       render();
@@ -470,6 +496,9 @@ function edit(c, row) {
     }, submit);
   });
   screen.append(form);
+  const heading = screen.querySelector("h1");
+  heading.tabIndex = -1;
+  heading.focus();
   if (row && config.collections.find((x) => x.key === active).publicLinks) {
     const link = E("a", "Открыть публичную форму");
     link.href = location.origin + "/#public=" + row.id;
@@ -491,6 +520,69 @@ function edit(c, row) {
     screen.append(details);
   }
 }
+function accountSessions(report) {
+  const panel = E('section', undefined, 'panel account-sessions'),
+    header = E('div', undefined, 'account-session-heading'),
+    refreshButton = E('button', 'Обновить сеансы', 'secondary'),
+    status = E('p', 'Загрузка аккаунтов и сеансов…', 'muted account-session-status'),
+    list = E('div', undefined, 'account-session-list');
+  refreshButton.type = 'button';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  header.append(E('h2', 'Аккаунты и сеансы'), refreshButton);
+  panel.append(header, E('p', 'Отзыв завершает вход в браузерах выбранного аккаунта. Для вашего аккаунта текущий сеанс всегда сохраняется. Пароли и роли здесь не меняются.', 'muted'), status, list);
+  screen.append(panel);
+  let requestNumber = 0;
+  const stamp = value => new Date(value).toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  async function refresh() {
+    const current = ++requestNumber;
+    status.textContent = 'Обновление сведений о сеансах…';
+    try {
+      const result = await api('/api/accounts');
+      if (current !== requestNumber || !panel.isConnected) return;
+      list.replaceChildren();
+      for (const account of result.users) {
+        const row = E('article', undefined, 'account-session-row'),
+          detail = E('div'),
+          label = account.isCurrentUser ? 'Завершить другие сеансы' : 'Завершить все сеансы',
+          revoke = E('button', label, 'secondary');
+        detail.append(E('h3', account.name + (account.isCurrentUser ? ' · ваш аккаунт' : '')), E('p', (account.role === 'admin' ? 'Администратор' : 'Сотрудник') + ' · действующих сеансов: ' + account.activeSessions));
+        const expiry = !account.activeSessions ? 'Действующих сеансов нет.' : account.earliestExpiry === account.latestExpiry ? 'Истечение: ' + stamp(account.latestExpiry) : 'Истечение сеансов: от ' + stamp(account.earliestExpiry) + ' до ' + stamp(account.latestExpiry);
+        detail.append(E('small', expiry));
+        revoke.type = 'button';
+        revoke.setAttribute('aria-label', label + ': ' + account.name);
+        revoke.disabled = account.activeSessions <= (account.isCurrentUser ? 1 : 0);
+        revoke.addEventListener('click', () => run(async () => {
+          revoke.textContent = 'Завершение…';
+          try {
+            const result = await api('/api/accounts/revoke-sessions', 'POST', {username: account.name});
+            await confirmMutation('Завершено действующих сеансов: ' + result.revoked + ' · ' + result.username + (result.keptCurrent ? '. Ваш текущий сеанс сохранён.' : '.'));
+          } finally { revoke.textContent = label; }
+        }, revoke));
+        row.append(detail, revoke);
+        list.append(row);
+      }
+      status.textContent = 'Обновлено: ' + stamp(result.serverTime) + '. Ваш текущий сеанс истекает: ' + stamp(result.currentSessionExpires) + '.';
+    } catch (error) {
+      if (current === requestNumber && panel.isConnected) status.textContent = 'Не удалось загрузить сведения. Повторите кнопкой «Обновить сеансы».';
+      throw error;
+    }
+  }
+  async function confirmMutation(confirmation) {
+    // The write is committed; a read failure must not turn it into a failed write.
+    list.replaceChildren();
+    report(confirmation);
+    try { await refresh(); }
+    catch {
+      report(confirmation + ' Список аккаунтов и сеансов не обновлён. Нажмите «Обновить сеансы» или войдите снова.', true);
+    }
+  }
+  accountSessions.refresh = refresh;
+  accountSessions.afterMutation = confirmMutation;
+  refreshButton.addEventListener('click', () => run(refresh, refreshButton));
+  run(refresh, refreshButton);
+}
+
 function settings() {
   screen.replaceChildren(E("h1", "Данные и доступ"));
   const actions = E("div", undefined, "actions");
@@ -502,6 +594,7 @@ function settings() {
     );
     return;
   }
+  accountSessions(message);
   screen.append(
     button("Скачать копию данных", async () =>
       download(config.slug + "-backup.json", await api("/api/backup")),
@@ -565,7 +658,7 @@ function settings() {
         role: "operator",
       });
       form.reset();
-      message("Сотрудник создан. Передайте пароль защищённым способом.");
+      await accountSessions.afterMutation("Сотрудник создан. Передайте пароль защищённым способом.");
     }, submit);
   });
   screen.append(
@@ -639,8 +732,14 @@ async function publicView(id) {
     ),
   );
 }
+const loadingState = E("p", "Загрузка рабочего пространства…", "muted");
+loadingState.dataset.loading = "true";
+loadingState.setAttribute("role", "status");
+screen.replaceChildren(loadingState);
 run(async () => {
   config = await api("/api/config");
+const requestedSection=new URLSearchParams(location.hash.slice(1)).get('section');if(config.collections.some(collection=>collection.key===requestedSection))active=requestedSection;
+for(const [key,label] of Object.entries({"properties": "Добавить объект", "stays": "Добавить заезд", "tasks": "Назначить подготовку"})){const collection=config.collections.find(item=>item.key===key);if(collection&&!collection.addLabel)collection.addLabel=label;}
   const id = location.hash.startsWith("#public=") ? location.hash.slice(8) : "";
   if (id) {
     await publicView(id);

@@ -9,6 +9,10 @@
   },
   "scripts": {
     "start": "node start.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "preflight": "node scripts/preflight.mjs",
+    "health": "node scripts/healthcheck.mjs",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs"
   }
 }
